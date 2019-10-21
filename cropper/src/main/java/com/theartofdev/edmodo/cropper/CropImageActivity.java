@@ -15,6 +15,7 @@ package com.theartofdev.edmodo.cropper;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -29,6 +30,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.webkit.MimeTypeMap;
 import android.widget.Toast;
 
 import java.io.File;
@@ -198,18 +200,31 @@ public class CropImageActivity extends AppCompatActivity
       }
 
       if (resultCode == Activity.RESULT_OK) {
-        mCropImageUri = CropImage.getPickImageResultUri(this, data);
+        Uri selectedUriPdf = data.getData();
+        ContentResolver cR = getApplicationContext().getContentResolver();
+        MimeTypeMap mime = MimeTypeMap.getSingleton();
+        String type = mime.getExtensionFromMimeType(cR.getType(selectedUriPdf));
+        if (type.equals("pdf")) {
+          Log.d("EXTENSION", "onActivityResult: " + type);
+          Intent intent = new Intent();
+          intent.putExtra("pdf", new PdfFile(selectedUriPdf));
+          setResult(1, intent);
+          finish();
+        }
+        else {
+          mCropImageUri = CropImage.getPickImageResultUri(this, data);
 
-        // For API >= 23 we need to check specifically that we have permissions to read external
-        // storage.
-        if (CropImage.isReadExternalStoragePermissionsRequired(this, mCropImageUri)) {
-          // request permissions and handle the result in onRequestPermissionsResult()
-          requestPermissions(
-              new String[] {Manifest.permission.READ_EXTERNAL_STORAGE},
-              CropImage.PICK_IMAGE_PERMISSIONS_REQUEST_CODE);
-        } else {
-          // no permissions required or already grunted, can start crop image activity
-          mCropImageView.setImageUriAsync(mCropImageUri);
+          // For API >= 23 we need to check specifically that we have permissions to read external
+          // storage.
+          if (CropImage.isReadExternalStoragePermissionsRequired(this, mCropImageUri)) {
+            // request permissions and handle the result in onRequestPermissionsResult()
+            requestPermissions(
+                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                    CropImage.PICK_IMAGE_PERMISSIONS_REQUEST_CODE);
+          } else {
+            // no permissions required or already grunted, can start crop image activity
+            mCropImageView.setImageUriAsync(mCropImageUri);
+          }
         }
       }
     }
