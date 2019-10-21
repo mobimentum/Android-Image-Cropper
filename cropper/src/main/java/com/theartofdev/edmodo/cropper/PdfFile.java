@@ -7,6 +7,7 @@ import android.os.Parcelable;
 public class PdfFile implements Parcelable {
 
     private static final String TAG = "PdfFile";
+    public static final String PDF = "pdf";
 
     private Uri uri;
 
@@ -15,8 +16,7 @@ public class PdfFile implements Parcelable {
     }
 
     public PdfFile(Parcel in) {
-        Uri.Builder builder = new Uri.Builder();
-        this.uri = builder.path(in.readString()).build();
+        uri = Uri.parse(in.readString());
     }
 
     public Uri getUri() {

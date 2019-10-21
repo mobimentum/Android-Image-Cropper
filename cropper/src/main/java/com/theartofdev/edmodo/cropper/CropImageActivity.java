@@ -24,13 +24,14 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.webkit.MimeTypeMap;
+import android.widget.Button;
 import android.widget.Toast;
 
 import java.io.File;
@@ -53,6 +54,9 @@ public class CropImageActivity extends AppCompatActivity
   /** the options that were set for the crop image */
   private CropImageOptions mOptions;
 
+  private Button cropBtn;
+  private Button backBtn;
+
   @Override
   @SuppressLint("NewApi")
   public void onCreate(Bundle savedInstanceState) {
@@ -60,6 +64,22 @@ public class CropImageActivity extends AppCompatActivity
     setContentView(R.layout.crop_image_activity);
 
     mCropImageView = findViewById(R.id.cropImageView);
+
+    cropBtn = mCropImageView.findViewById(R.id.cropBtn);
+    cropBtn.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        cropImage();
+      }
+    });
+
+    backBtn = mCropImageView.findViewById(R.id.backBtn);
+    backBtn.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        setResultCancel();
+      }
+    });
 
     Bundle bundle = getIntent().getBundleExtra(CropImage.CROP_IMAGE_EXTRA_BUNDLE);
     mCropImageUri = bundle.getParcelable(CropImage.CROP_IMAGE_EXTRA_SOURCE);
@@ -70,7 +90,7 @@ public class CropImageActivity extends AppCompatActivity
         if (CropImage.isExplicitCameraPermissionRequired(this)) {
           // request permissions and handle the result in onRequestPermissionsResult()
           requestPermissions(
-              new String[] {Manifest.permission.CAMERA},
+              new String[] {Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE},
               CropImage.CAMERA_CAPTURE_PERMISSIONS_REQUEST_CODE);
         } else {
           CropImage.startPickImageActivity(this);
@@ -93,7 +113,7 @@ public class CropImageActivity extends AppCompatActivity
               ? mOptions.activityTitle
               : getResources().getString(R.string.crop_image_activity_title);
       actionBar.setTitle(title);
-      actionBar.setDisplayHomeAsUpEnabled(true);
+//      actionBar.setDisplayHomeAsUpEnabled(true);
     }
   }
 
@@ -111,76 +131,76 @@ public class CropImageActivity extends AppCompatActivity
     mCropImageView.setOnCropImageCompleteListener(null);
   }
 
-  @Override
-  public boolean onCreateOptionsMenu(Menu menu) {
-    getMenuInflater().inflate(R.menu.crop_image_menu, menu);
+//  @Override
+//  public boolean onCreateOptionsMenu(Menu menu) {
+//    getMenuInflater().inflate(R.menu.crop_image_menu, menu);
+//
+//    if (!mOptions.allowRotation) {
+//      menu.removeItem(R.id.crop_image_menu_rotate_left);
+//      menu.removeItem(R.id.crop_image_menu_rotate_right);
+//    } else if (mOptions.allowCounterRotation) {
+//      menu.findItem(R.id.crop_image_menu_rotate_left).setVisible(true);
+//    }
+//
+//    if (!mOptions.allowFlipping) {
+//      menu.removeItem(R.id.crop_image_menu_flip);
+//    }
+//
+//    if (mOptions.cropMenuCropButtonTitle != null) {
+//      menu.findItem(R.id.crop_image_menu_crop).setTitle(mOptions.cropMenuCropButtonTitle);
+//    }
+//
+//    Drawable cropIcon = null;
+//    try {
+//      if (mOptions.cropMenuCropButtonIcon != 0) {
+//        cropIcon = ContextCompat.getDrawable(this, mOptions.cropMenuCropButtonIcon);
+//        menu.findItem(R.id.crop_image_menu_crop).setIcon(cropIcon);
+//      }
+//    } catch (Exception e) {
+//      Log.w("AIC", "Failed to read menu crop drawable", e);
+//    }
+//
+//    if (mOptions.activityMenuIconColor != 0) {
+//      updateMenuItemIconColor(
+//          menu, R.id.crop_image_menu_rotate_left, mOptions.activityMenuIconColor);
+//      updateMenuItemIconColor(
+//          menu, R.id.crop_image_menu_rotate_right, mOptions.activityMenuIconColor);
+//      updateMenuItemIconColor(menu, R.id.crop_image_menu_flip, mOptions.activityMenuIconColor);
+//      if (cropIcon != null) {
+//        updateMenuItemIconColor(menu, R.id.crop_image_menu_crop, mOptions.activityMenuIconColor);
+//      }
+//    }
+//    return true;
+//  }
 
-    if (!mOptions.allowRotation) {
-      menu.removeItem(R.id.crop_image_menu_rotate_left);
-      menu.removeItem(R.id.crop_image_menu_rotate_right);
-    } else if (mOptions.allowCounterRotation) {
-      menu.findItem(R.id.crop_image_menu_rotate_left).setVisible(true);
-    }
-
-    if (!mOptions.allowFlipping) {
-      menu.removeItem(R.id.crop_image_menu_flip);
-    }
-
-    if (mOptions.cropMenuCropButtonTitle != null) {
-      menu.findItem(R.id.crop_image_menu_crop).setTitle(mOptions.cropMenuCropButtonTitle);
-    }
-
-    Drawable cropIcon = null;
-    try {
-      if (mOptions.cropMenuCropButtonIcon != 0) {
-        cropIcon = ContextCompat.getDrawable(this, mOptions.cropMenuCropButtonIcon);
-        menu.findItem(R.id.crop_image_menu_crop).setIcon(cropIcon);
-      }
-    } catch (Exception e) {
-      Log.w("AIC", "Failed to read menu crop drawable", e);
-    }
-
-    if (mOptions.activityMenuIconColor != 0) {
-      updateMenuItemIconColor(
-          menu, R.id.crop_image_menu_rotate_left, mOptions.activityMenuIconColor);
-      updateMenuItemIconColor(
-          menu, R.id.crop_image_menu_rotate_right, mOptions.activityMenuIconColor);
-      updateMenuItemIconColor(menu, R.id.crop_image_menu_flip, mOptions.activityMenuIconColor);
-      if (cropIcon != null) {
-        updateMenuItemIconColor(menu, R.id.crop_image_menu_crop, mOptions.activityMenuIconColor);
-      }
-    }
-    return true;
-  }
-
-  @Override
-  public boolean onOptionsItemSelected(MenuItem item) {
-    if (item.getItemId() == R.id.crop_image_menu_crop) {
-      cropImage();
-      return true;
-    }
-    if (item.getItemId() == R.id.crop_image_menu_rotate_left) {
-      rotateImage(-mOptions.rotationDegrees);
-      return true;
-    }
-    if (item.getItemId() == R.id.crop_image_menu_rotate_right) {
-      rotateImage(mOptions.rotationDegrees);
-      return true;
-    }
-    if (item.getItemId() == R.id.crop_image_menu_flip_horizontally) {
-      mCropImageView.flipImageHorizontally();
-      return true;
-    }
-    if (item.getItemId() == R.id.crop_image_menu_flip_vertically) {
-      mCropImageView.flipImageVertically();
-      return true;
-    }
-    if (item.getItemId() == android.R.id.home) {
-      setResultCancel();
-      return true;
-    }
-    return super.onOptionsItemSelected(item);
-  }
+//  @Override
+//  public boolean onOptionsItemSelected(MenuItem item) {
+//    if (item.getItemId() == R.id.crop_image_menu_crop) {
+//      cropImage();
+//      return true;
+//    }
+//    if (item.getItemId() == R.id.crop_image_menu_rotate_left) {
+//      rotateImage(-mOptions.rotationDegrees);
+//      return true;
+//    }
+//    if (item.getItemId() == R.id.crop_image_menu_rotate_right) {
+//      rotateImage(mOptions.rotationDegrees);
+//      return true;
+//    }
+//    if (item.getItemId() == R.id.crop_image_menu_flip_horizontally) {
+//      mCropImageView.flipImageHorizontally();
+//      return true;
+//    }
+//    if (item.getItemId() == R.id.crop_image_menu_flip_vertically) {
+//      mCropImageView.flipImageVertically();
+//      return true;
+//    }
+//    if (item.getItemId() == android.R.id.home) {
+//      setResultCancel();
+//      return true;
+//    }
+//    return super.onOptionsItemSelected(item);
+//  }
 
   @Override
   public void onBackPressed() {
@@ -191,6 +211,8 @@ public class CropImageActivity extends AppCompatActivity
   @Override
   @SuppressLint("NewApi")
   protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    String type = null;
+    Uri selectedUriPdf = null;
 
     // handle result of pick image chooser
     if (requestCode == CropImage.PICK_IMAGE_CHOOSER_REQUEST_CODE) {
@@ -200,14 +222,16 @@ public class CropImageActivity extends AppCompatActivity
       }
 
       if (resultCode == Activity.RESULT_OK) {
-        Uri selectedUriPdf = data.getData();
-        ContentResolver cR = getApplicationContext().getContentResolver();
-        MimeTypeMap mime = MimeTypeMap.getSingleton();
-        String type = mime.getExtensionFromMimeType(cR.getType(selectedUriPdf));
-        if (type.equals("pdf")) {
-          Log.d("EXTENSION", "onActivityResult: " + type);
+        if (data != null) {
+          selectedUriPdf = data.getData();
+          ContentResolver cR = getApplicationContext().getContentResolver();
+          MimeTypeMap mime = MimeTypeMap.getSingleton();
+          type = mime.getExtensionFromMimeType(cR.getType(selectedUriPdf));
+        }
+        if (type != null && type.equals(PdfFile.PDF)) {
           Intent intent = new Intent();
-          intent.putExtra("pdf", new PdfFile(selectedUriPdf));
+          PdfFile pdfFile = new PdfFile(selectedUriPdf);
+          intent.putExtra(PdfFile.PDF, pdfFile);
           setResult(1, intent);
           finish();
         }
@@ -228,6 +252,7 @@ public class CropImageActivity extends AppCompatActivity
         }
       }
     }
+    super.onActivityResult(requestCode, resultCode, data);
   }
 
   @Override
